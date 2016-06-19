@@ -10,6 +10,8 @@ public class ButtonPanel : MonoBehaviour
     public bool DestroyButtons = false;
     public bool UpdateButtons = false;
 
+    public string PrefabName = "ProductButton";
+
     private void UpdateSpawnedButtons()
     {
         if (DestroyButtons)
@@ -39,9 +41,9 @@ public class ButtonPanel : MonoBehaviour
 
                 if (Buttons[i].Button == null)
                 {
-                    string prefab = "ProductButton";
+                    string prefab = PrefabName;
                     if (string.IsNullOrEmpty(Buttons[i].Name))
-                        prefab = "ProductButtonEmpty";
+                        prefab = string.Format("{0}Empty", PrefabName);
                     {
 #if UNITY_EDITOR
                         if (!Application.isPlaying)
