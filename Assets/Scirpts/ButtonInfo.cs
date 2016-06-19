@@ -10,7 +10,6 @@ public class ButtonInfo
     public string Name = "";
     public float Price = 1.00f;
 
-    [ReadOnly]
     public ProductButton Button;
 
     [ReadOnly]
