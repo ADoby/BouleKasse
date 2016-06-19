@@ -15,6 +15,7 @@ public class Printer : MonoBehaviour
     {
         text = text.Replace("#FEED", LFAfter);
         text = text.Replace("#CUT", Cut);
+        Debug.Log("DRUCKING: " + text);
 
         PosPrinter printer = GetReceiptPrinter();
 
@@ -22,6 +23,10 @@ public class Printer : MonoBehaviour
         {
             ConnectToPrinter(printer);
             printer.PrintImmediate(PrinterStation.Receipt, text);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError(ex);
         }
         finally
         {
@@ -51,10 +56,18 @@ public class Printer : MonoBehaviour
 
     private PosPrinter GetReceiptPrinter()
     {
-        PosExplorer posExplorer = new PosExplorer();
-        DeviceInfo receiptPrinterDevice = posExplorer.GetDevice("PosPrinter", "PosPrinter");
+        try
+        {
+            PosExplorer posExplorer = new PosExplorer();
+            DeviceInfo receiptPrinterDevice = posExplorer.GetDevice("PosPrinter", "PosPrinter");
+            return (PosPrinter)posExplorer.CreateInstance(receiptPrinterDevice);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError(ex);
+        }
         //May need to change this if you don't use a logicial name or use a different one.
-        return (PosPrinter)posExplorer.CreateInstance(receiptPrinterDevice);
+        return null;
     }
 
     private void PrintReceiptFooter(PosPrinter printer, int subTotal, double tax, double discount, string footerText)
