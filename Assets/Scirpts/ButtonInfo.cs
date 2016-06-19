@@ -39,5 +39,17 @@ public class ButtonInfo
             Button.Price.text = AppController.GetPriceText(Price);
         if (Button.Count != null)
             Button.Count.text = Count.ToString();
+
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            if (Button.Label != null)
+                UnityEditor.EditorUtility.SetDirty(Button.Label);
+            if (Button.Price != null)
+                UnityEditor.EditorUtility.SetDirty(Button.Price);
+            if (Button.Count != null)
+                UnityEditor.EditorUtility.SetDirty(Button.Count);
+        }
+#endif
     }
 }

@@ -92,7 +92,10 @@ public class ButtonPanel : MonoBehaviour
             }
 
 #if UNITY_EDITOR
-            UnityEditor.EditorUtility.SetDirty(this);
+            if (!Application.isPlaying)
+            {
+                UnityEditor.EditorUtility.SetDirty(this);
+            }
 #endif
         }
     }
