@@ -7,10 +7,11 @@ public class ButtonInfo
 {
     public static UnityAction<ButtonInfo> ButtonClicked;
 
-    public ProductButton Button;
-
     public string Name = "";
     public float Price = 1.00f;
+
+    [ReadOnly]
+    public ProductButton Button;
 
     [ReadOnly]
     public int Count = 0;
