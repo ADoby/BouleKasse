@@ -1,16 +1,21 @@
-﻿using System;
-using Microsoft.PointOfService;
+﻿using Microsoft.PointOfService;
+using System;
+using UnityEngine;
 
-public partial class Printer
+public class Printer : MonoBehaviour
 {
     public static char ESC = (char)27;
     public static char CR = (char)13;
-    public static char LF = (char)10;
+    public static string LF = Convert.ToString(Convert.ToChar(10));
     public static string Cut = ESC + "m";
     public static string PrintAndFeedPaper = ESC + "J";
+    public static string LFAfter = LF + LF + LF + LF + LF;
 
     public void PrintReceipt(string text)
     {
+        text = text.Replace("#FEED", LFAfter);
+        text = text.Replace("#CUT", Cut);
+
         PosPrinter printer = GetReceiptPrinter();
 
         try
@@ -46,7 +51,7 @@ public partial class Printer
 
     private PosPrinter GetReceiptPrinter()
     {
-        PosExplorer posExplorer = new PosExplorer(null);
+        PosExplorer posExplorer = new PosExplorer();
         DeviceInfo receiptPrinterDevice = posExplorer.GetDevice("PosPrinter", "PosPrinter");
         //May need to change this if you don't use a logicial name or use a different one.
         return (PosPrinter)posExplorer.CreateInstance(receiptPrinterDevice);

@@ -7,7 +7,9 @@ public class ButtonInfo
 {
     public static UnityAction<ButtonInfo> ButtonClicked;
 
+    [Multiline(2)]
     public string Name = "";
+
     public float Price = 1.00f;
 
     public ProductButton Button;
