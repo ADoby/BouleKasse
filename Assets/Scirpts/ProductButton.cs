@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using System.Collections;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class ProductButton : MonoBehaviour
 {
@@ -9,9 +9,11 @@ public class ProductButton : MonoBehaviour
     public Text Price;
     public Text Count;
 
+    public Image Image;
+
     public ButtonInfo info;
 
-    void Awake()
+    private void Awake()
     {
         if (info == null)
             return;

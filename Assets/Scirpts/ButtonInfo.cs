@@ -11,6 +11,7 @@ public class ButtonInfo
     public string Name = "";
 
     public float Price = 1.00f;
+    public Sprite Sprite;
 
     public ProductButton Button;
 
@@ -39,6 +40,8 @@ public class ButtonInfo
             Button.Price.text = AppController.GetPriceText(Price);
         if (Button.Count != null)
             Button.Count.text = Count.ToString();
+        if (Button.Image != null)
+            Button.Image.sprite = Sprite;
 
 #if UNITY_EDITOR
         if (!Application.isPlaying)
@@ -49,6 +52,9 @@ public class ButtonInfo
                 UnityEditor.EditorUtility.SetDirty(Button.Price);
             if (Button.Count != null)
                 UnityEditor.EditorUtility.SetDirty(Button.Count);
+
+            if (Button.Image != null)
+                UnityEditor.EditorUtility.SetDirty(Button.Image);
         }
 #endif
     }

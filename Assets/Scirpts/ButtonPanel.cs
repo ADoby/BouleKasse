@@ -39,6 +39,18 @@ public class ButtonPanel : MonoBehaviour
                 if (Buttons[i] == null)
                     continue;
 
+                Vector3 pos = Vector3.zero;
+                Vector2 size = new Vector2(570, 200);
+
+                if (Buttons[i].Button != null)
+                {
+                    var rect = Buttons[i].Button.GetComponent<RectTransform>();
+                    pos = rect.position;
+                    size = rect.sizeDelta;
+
+                    DestroyImmediate(Buttons[i].Button.gameObject);
+                }
+
                 if (Buttons[i].Button == null)
                 {
                     string prefab = PrefabName;
