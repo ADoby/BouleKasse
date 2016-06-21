@@ -34,7 +34,7 @@ public class ButtonInfo
     {
         if (Button == null)
             return;
-        if (Button.Label != null)
+        if (Button.Label != null && string.IsNullOrEmpty(Button.Label.text))
             Button.Label.text = Name;
         if (Button.Price != null)
             Button.Price.text = AppController.GetPriceText(Price);

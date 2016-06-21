@@ -31,6 +31,7 @@ public class AppData
     }
 
     public List<Order> Customers;
+    public Dictionary<string, Order> Teammembers;
 }
 
 public class AppController : MonoBehaviour
@@ -61,6 +62,16 @@ public class AppController : MonoBehaviour
 
     public Transform SoldHolder;
     public List<OrderPanel> SpawnedOrders;
+
+    [Header("Team")]
+    public GameObject TeamPanel;
+
+    public GameObject TeamSoldPanel;
+    public Transform TeamMemberHolder;
+    public Transform TeamMemberSoldHolder;
+    public List<ProductButton> SpawnedTeamMembers;
+    public List<ProductButton> SpawnedTeamSoldInfos;
+    public string SelectedTeamMember = "";
 
     public string Path
     {
@@ -159,6 +170,13 @@ public class AppController : MonoBehaviour
             for (int i = 0; i < Data.Customers.Count; i++)
             {
                 SpawnOrder(Data.Customers[i]);
+            }
+
+            if (Data.Teammembers == null)
+                Data.Teammembers = new Dictionary<string, AppData.Order>();
+            foreach (var item in Data.Teammembers)
+            {
+                SpawnTeamMember(item.Key);
             }
         }
     }
@@ -394,5 +412,45 @@ public class AppController : MonoBehaviour
             }
         }
         Save();
+    }
+
+    public InputField TeamMemberName;
+    public Text TeamSumLabel;
+
+    public void AddTeamMember()
+    {
+        SpawnTeamMember(TeamMemberName.text);
+    }
+
+    public void SelectTeamMember(string name)
+    {
+    }
+
+    private void SpawnTeamMember(string name)
+    {
+        if (Data.Teammembers.ContainsKey(name))
+            return;
+
+        var order = new AppData.Order();
+        order.Data = new Dictionary<string, int>();
+
+        Data.Teammembers.Add(name, order);
+
+        var go = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Teammember"));
+        go.transform.SetParent(TeamMemberHolder);
+        go.transform.localScale = Vector3.one;
+
+        var button = go.GetComponent<ProductButton>();
+        button.Label.text = name;
+    }
+
+    public void ShowTeam()
+    {
+        TeamPanel.SetActive(true);
+    }
+
+    public void HideTeam()
+    {
+        TeamPanel.SetActive(false);
     }
 }

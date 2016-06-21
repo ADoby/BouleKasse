@@ -41,12 +41,13 @@ public class ButtonPanel : MonoBehaviour
 
                 Vector3 pos = Vector3.zero;
                 Vector2 size = new Vector2(570, 200);
-
+                string text = string.Empty;
                 if (Buttons[i].Button != null)
                 {
                     var rect = Buttons[i].Button.GetComponent<RectTransform>();
                     pos = rect.position;
                     size = rect.sizeDelta;
+                    text = Buttons[i].Button.Label.text;
 
                     DestroyImmediate(Buttons[i].Button.gameObject);
                 }
@@ -76,6 +77,10 @@ public class ButtonPanel : MonoBehaviour
                             {
                                 button.info = Buttons[i];
                                 Buttons[i].Button = button;
+
+                                var rect = Buttons[i].Button.GetComponent<RectTransform>();
+                                rect.position = pos;
+                                rect.sizeDelta = size;
                             }
                         }
                     }
@@ -94,11 +99,14 @@ public class ButtonPanel : MonoBehaviour
                 }
 
                 Buttons[i].UpdateText();
+                if (!string.IsNullOrEmpty(text))
+                    button.Label.text = text;
 
 #if UNITY_EDITOR
                 if (!Application.isPlaying)
                 {
                     UnityEditor.EditorUtility.SetDirty(button);
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene());
                 }
 #endif
             }
