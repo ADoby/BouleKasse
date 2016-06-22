@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class ProductButton : MonoBehaviour
 {
+    public string Name = "";
     public Text Label;
     public Text Price;
     public Text Count;
@@ -12,6 +13,15 @@ public class ProductButton : MonoBehaviour
     public Image Image;
 
     public ButtonInfo info;
+
+    public UnityAction<ProductButton> Clicked;
+
+    public GameObject Overlay;
+
+    public void SetSelected(bool value)
+    {
+        Overlay.SetActive(value);
+    }
 
     private void Awake()
     {
@@ -23,6 +33,8 @@ public class ProductButton : MonoBehaviour
 
     public void OnClick()
     {
+        if (Clicked != null)
+            Clicked.Invoke(this);
         info.OnClicked();
     }
 }

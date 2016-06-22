@@ -13,8 +13,13 @@ public class AppData
         public Dictionary<string, int> Data;
         public bool Finished = false;
 
+        public float Sum = 0f;
+
         [FullSerializer.fsIgnore]
         public GameObject SpawnedOrder;
+
+        [FullSerializer.fsIgnore]
+        public ProductButton SpawnedButton;
 
         public void Add(string name)
         {
@@ -47,6 +52,7 @@ public class AppController : MonoBehaviour
 
     public static UnityAction OnFinished;
 
+    public PrinterManager Printer;
     public string FileName = "Data.json";
 
     public AppData Data;
@@ -55,7 +61,7 @@ public class AppController : MonoBehaviour
     public GameObject InfoHolder;
 
     public Transform CheckListHolder;
-    public Dictionary<string, ProductButton> CheckButtons;
+    public Dictionary<string, ProductButton> CheckButtons = new Dictionary<string, ProductButton>();
 
     [Header("Orders")]
     public GameObject OrdersPanel;
@@ -69,9 +75,31 @@ public class AppController : MonoBehaviour
     public GameObject TeamSoldPanel;
     public Transform TeamMemberHolder;
     public Transform TeamMemberSoldHolder;
-    public List<ProductButton> SpawnedTeamMembers;
-    public List<ProductButton> SpawnedTeamSoldInfos;
     public string SelectedTeamMember = "";
+    public InputField TeamMemberName;
+    public Text TeamSumLabel;
+    public Text TeamSelectedName;
+    public Button AufschreibenButton;
+    public GameObject DeleteButton;
+    public Dictionary<string, ProductButton> SpawnedTeamMemberSold = new Dictionary<string, ProductButton>();
+
+    public AppData.Order CurrentCustomer
+    {
+        get
+        {
+            return Data.Customers[Data.Customers.Count - 1];
+        }
+    }
+
+    public AppData.Order CurrentTeamMember
+    {
+        get
+        {
+            if (!Data.Teammembers.ContainsKey(SelectedTeamMember))
+                return null;
+            return Data.Teammembers[SelectedTeamMember];
+        }
+    }
 
     public string Path
     {
@@ -110,6 +138,8 @@ public class AppController : MonoBehaviour
             CheckButtons = new Dictionary<string, ProductButton>();
 
         BezahltButton.interactable = false;
+        AufschreibenButton.interactable = false;
+        DeleteButton.SetActive(false);
 
         Load();
         Save();
@@ -285,6 +315,7 @@ public class AppController : MonoBehaviour
         UpdateText();
 
         BezahltButton.interactable = sum > 0;
+        AufschreibenButton.interactable = sum > 0;
     }
 
     private void UpdateText()
@@ -314,6 +345,7 @@ public class AppController : MonoBehaviour
         sum = 0;
         UpdateText();
         BezahltButton.interactable = false;
+        AufschreibenButton.interactable = false;
 
         if (OnFinished != null)
             OnFinished.Invoke();
@@ -414,34 +446,147 @@ public class AppController : MonoBehaviour
         Save();
     }
 
-    public InputField TeamMemberName;
-    public Text TeamSumLabel;
-
     public void AddTeamMember()
     {
         SpawnTeamMember(TeamMemberName.text);
+        Save();
     }
 
-    public void SelectTeamMember(string name)
+    public void SelectTeamMember(ProductButton button)
     {
+        SelectedTeamMember = button.Name;
+        TeamSelectedName.text = SelectedTeamMember;
+        SpawnTeamMemberSold(SelectedTeamMember);
+
+        foreach (var item in Data.Teammembers)
+        {
+            if (item.Value != null && item.Value.SpawnedButton != null)
+            {
+                item.Value.SpawnedButton.SetSelected(item.Key == SelectedTeamMember);
+            }
+        }
+
+        TeamSumLabel.text = GetPriceText(CurrentTeamMember.Sum);
+        ShowTeamSold();
+
+        DeleteButton.SetActive(CurrentTeamMember.Sum == 0);
     }
+
+    public string TeamMemberPrefab = "Teammember";
+    public string TeamMemberSoldPrefab = "TeamMemberSold";
 
     private void SpawnTeamMember(string name)
     {
-        if (Data.Teammembers.ContainsKey(name))
+        if (!Data.Teammembers.ContainsKey(name))
+        {
+            var order = new AppData.Order();
+            order.Data = new Dictionary<string, int>();
+            Data.Teammembers.Add(name, order);
+        }
+
+        if (Data.Teammembers[name].SpawnedButton != null)
             return;
 
-        var order = new AppData.Order();
-        order.Data = new Dictionary<string, int>();
-
-        Data.Teammembers.Add(name, order);
-
-        var go = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Teammember"));
+        var go = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>(TeamMemberPrefab));
         go.transform.SetParent(TeamMemberHolder);
         go.transform.localScale = Vector3.one;
 
         var button = go.GetComponent<ProductButton>();
+        button.Name = name;
         button.Label.text = name;
+        button.Clicked -= SelectTeamMember;
+        button.Clicked += SelectTeamMember;
+        Data.Teammembers[name].SpawnedButton = button;
+    }
+
+    private void SpawnTeamMemberSold(string name)
+    {
+        DespawnTeamMemberSold();
+
+        SpawnedTeamMemberSold.Clear();
+        if (!Data.Teammembers.ContainsKey(name))
+            return;
+        foreach (var item in Data.Teammembers[name].Data)
+        {
+            SpawnTeamMemberSoldButton(item.Key, item.Value);
+        }
+    }
+
+    private void DespawnTeamMemberSold()
+    {
+        if (SpawnedTeamMemberSold != null)
+        {
+            foreach (var item in SpawnedTeamMemberSold)
+            {
+                if (item.Value != null)
+                    Destroy(item.Value.gameObject);
+            }
+        }
+    }
+
+    private void SpawnTeamMemberSoldButton(string key, int value)
+    {
+        var go = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>(TeamMemberSoldPrefab));
+        go.transform.SetParent(TeamMemberSoldHolder);
+        go.transform.localScale = Vector3.one;
+
+        var button = go.GetComponent<ProductButton>();
+        button.Label.text = key;
+        button.Count.text = value.ToString();
+        SpawnedTeamMemberSold.Add(key, button);
+    }
+
+    public void AddToTeamMember()
+    {
+        if (CurrentTeamMember == null)
+            return;
+
+        Data.Teammembers[SelectedTeamMember].Sum += sum;
+
+        foreach (var item in CurrentCustomer.Data)
+        {
+            if (!CurrentTeamMember.Data.ContainsKey(item.Key))
+                CurrentTeamMember.Data.Add(item.Key, 0);
+
+            CurrentTeamMember.Data[item.Key] += item.Value;
+
+            if (!SpawnedTeamMemberSold.ContainsKey(item.Key))
+                SpawnTeamMemberSoldButton(item.Key, 0);
+
+            SpawnedTeamMemberSold[item.Key].Count.text = CurrentTeamMember.Data[item.Key].ToString();
+        }
+
+        TeamSumLabel.text = GetPriceText(CurrentTeamMember.Sum);
+
+        Clear();
+        Save();
+        DeleteButton.SetActive(CurrentTeamMember.Sum == 0);
+    }
+
+    public void FinishTeamMember()
+    {
+        if (CurrentTeamMember == null)
+            return;
+
+        DespawnTeamMemberSold();
+
+        CurrentTeamMember.Data.Clear();
+        CurrentTeamMember.Sum = 0;
+
+        TeamSumLabel.text = GetPriceText(0);
+        TeamSelectedName.text = "";
+
+        Save();
+        DeleteButton.SetActive(CurrentTeamMember.Sum == 0);
+    }
+
+    public void DeleteTeamMember()
+    {
+        HideTeamSold();
+        if (CurrentTeamMember != null)
+            Destroy(CurrentTeamMember.SpawnedButton.gameObject);
+
+        Data.Teammembers.Remove(SelectedTeamMember);
     }
 
     public void ShowTeam()
@@ -452,5 +597,15 @@ public class AppController : MonoBehaviour
     public void HideTeam()
     {
         TeamPanel.SetActive(false);
+    }
+
+    public void ShowTeamSold()
+    {
+        TeamSoldPanel.SetActive(true);
+    }
+
+    public void HideTeamSold()
+    {
+        TeamSoldPanel.SetActive(false);
     }
 }
