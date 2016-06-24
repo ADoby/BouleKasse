@@ -42,6 +42,7 @@ public class AppData
 public class AppController : MonoBehaviour
 {
     public static UnityAction ResetOrderFinished;
+    public static UnityAction SelectAllOrdersCallback;
 
     public float sum = 0f;
     public Text SumText;
@@ -80,6 +81,7 @@ public class AppController : MonoBehaviour
     public Text TeamSumLabel;
     public Text TeamSelectedName;
     public Button AufschreibenButton;
+    public GameObject TeamBezahltButton;
     public GameObject DeleteButton;
     public Dictionary<string, ProductButton> SpawnedTeamMemberSold = new Dictionary<string, ProductButton>();
 
@@ -138,8 +140,12 @@ public class AppController : MonoBehaviour
             CheckButtons = new Dictionary<string, ProductButton>();
 
         BezahltButton.interactable = false;
-        AufschreibenButton.interactable = false;
-        DeleteButton.SetActive(false);
+        if (AufschreibenButton != null)
+            AufschreibenButton.interactable = false;
+        if (DeleteButton != null)
+            DeleteButton.SetActive(false);
+        if (TeamBezahltButton != null)
+            TeamBezahltButton.SetActive(false);
 
         Load();
         Save();
@@ -223,6 +229,9 @@ public class AppController : MonoBehaviour
         {
             AddSpawnCheckValue(item.Key, item.Value);
         }
+
+        if (SoldHolder == null)
+            return;
 
         if (!order.Finished)
         {
@@ -315,7 +324,8 @@ public class AppController : MonoBehaviour
         UpdateText();
 
         BezahltButton.interactable = sum > 0;
-        AufschreibenButton.interactable = sum > 0;
+        if (AufschreibenButton != null)
+            AufschreibenButton.interactable = sum > 0;
     }
 
     private void UpdateText()
@@ -332,10 +342,12 @@ public class AppController : MonoBehaviour
     {
         Storno.isOn = false;
 
+        SpawnOrder(CurrentCustomer);
+
+        if (Printer != null)
+            Printer.PrintOrder(CurrentCustomer);
+
         Clear();
-
-        SpawnOrder(Data.Customers[Data.Customers.Count - 1]);
-
         CreateCustomer();
         Save();
     }
@@ -345,7 +357,8 @@ public class AppController : MonoBehaviour
         sum = 0;
         UpdateText();
         BezahltButton.interactable = false;
-        AufschreibenButton.interactable = false;
+        if (AufschreibenButton != null)
+            AufschreibenButton.interactable = false;
 
         if (OnFinished != null)
             OnFinished.Invoke();
@@ -450,6 +463,7 @@ public class AppController : MonoBehaviour
     {
         SpawnTeamMember(TeamMemberName.text);
         Save();
+        TeamMemberName.text = "";
     }
 
     public void SelectTeamMember(ProductButton button)
@@ -470,6 +484,7 @@ public class AppController : MonoBehaviour
         ShowTeamSold();
 
         DeleteButton.SetActive(CurrentTeamMember.Sum == 0);
+        TeamBezahltButton.SetActive(CurrentTeamMember.Sum > 0);
     }
 
     public string TeamMemberPrefab = "Teammember";
@@ -541,10 +556,13 @@ public class AppController : MonoBehaviour
         if (CurrentTeamMember == null)
             return;
 
-        Data.Teammembers[SelectedTeamMember].Sum += sum;
+        CurrentTeamMember.Sum += sum;
 
         foreach (var item in CurrentCustomer.Data)
         {
+            if (item.Value == 0)
+                continue;
+
             if (!CurrentTeamMember.Data.ContainsKey(item.Key))
                 CurrentTeamMember.Data.Add(item.Key, 0);
 
@@ -558,9 +576,15 @@ public class AppController : MonoBehaviour
 
         TeamSumLabel.text = GetPriceText(CurrentTeamMember.Sum);
 
-        Clear();
-        Save();
+        //Printer.PrintOrder(CurrentCustomer);
+        //CurrentCustomer.Data.Clear();
+        //Clear();
+        //Save();
+
+        Finish();
+
         DeleteButton.SetActive(CurrentTeamMember.Sum == 0);
+        TeamBezahltButton.SetActive(CurrentTeamMember.Sum > 0);
     }
 
     public void FinishTeamMember()
@@ -578,6 +602,7 @@ public class AppController : MonoBehaviour
 
         Save();
         DeleteButton.SetActive(CurrentTeamMember.Sum == 0);
+        TeamBezahltButton.SetActive(CurrentTeamMember.Sum > 0);
     }
 
     public void DeleteTeamMember()
@@ -607,5 +632,11 @@ public class AppController : MonoBehaviour
     public void HideTeamSold()
     {
         TeamSoldPanel.SetActive(false);
+    }
+
+    public void SelectAllOrders()
+    {
+        if (SelectAllOrdersCallback != null)
+            SelectAllOrdersCallback.Invoke();
     }
 }

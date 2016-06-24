@@ -1,0 +1,18 @@
+ESC@ESC!0Herzlich Willkommen
+ESCa1
+ESC!1Boulefreunde Gernsbach
+Boulefest 2016
+ESC!0
+ESCmPils
+LF
+ESC!1Boulefreunde Gernsbach
+Boulefest 2016
+ESC!0
+ESCmPils
+LF
+ESC!1Boulefreunde Gernsbach
+Boulefest 2016
+ESC!0
+ESCmWein weiß
+LFLFLFLF
+ESCm

@@ -13,16 +13,24 @@ public class OrderPanel : MonoBehaviour
     {
         AppController.ResetOrderFinished -= Reset;
         AppController.ResetOrderFinished += Reset;
+        AppController.SelectAllOrdersCallback -= Select;
+        AppController.SelectAllOrdersCallback += Select;
     }
 
     private void OnDestroy()
     {
         AppController.ResetOrderFinished -= Reset;
+        AppController.SelectAllOrdersCallback -= Select;
     }
 
     private void Reset()
     {
         ToggleButton.isOn = false;
+    }
+
+    private void Select()
+    {
+        ToggleButton.isOn = true;
     }
 
     public void Toggle(bool value)
